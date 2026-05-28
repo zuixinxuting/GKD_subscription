@@ -99,13 +99,18 @@ export default defineGkdApp({
         {
           key: 3,
           name: '0.01开通7天VIP',
-          matches:
-            '@View[childCount=2][index=1] >2 [text$="天体验卡" || text^="VIP"][visibleToUser=true]',
+          anyMatches: [
+            '@View[childCount=2][index=1] >2 [text$="天体验卡" || text^="VIP"][visibleToUser=true]', // 优先使用自身快查
+            '@[text$="天体验卡" || text^="VIP" || desc$="天体验卡" || desc^="VIP"][visibleToUser=true] < [index=parent.childCount.minus(1)] <n * <2 [childCount=2] <<5 [id="android:id/content"]', // 退而求其次
+          ],
           position: {
             left: 'width * 0.90',
             top: 'width * 0.09',
           },
-          snapshotUrls: 'https://i.gkd.li/i/26757915',
+          snapshotUrls: [
+            'https://i.gkd.li/i/26757915',
+            'https://i.gkd.li/i/28302150',
+          ],
           exampleUrls: 'https://e.gkd.li/4cefa02b-b83e-4f68-b861-d377ea427514',
         },
       ],
@@ -117,20 +122,29 @@ export default defineGkdApp({
       rules: [
         // 主页界面
         {
-          name: '开屏自动看视频', // 启动App出现的弹窗
+          // 主页界面
+          name: '开屏自动看视频',
           key: 0,
           fastQuery: true,
           activityIds: 'com.luna.biz.main.main.MainActivity',
           actionMaximum: 1,
           priorityTime: 5000,
           resetMatch: 'app',
-          matches:
+          anyMatches: [
             '[vid="ui"] >3 @[clickable=true] < ViewGroup +3 View > [text="今日畅听"] + [text^="第" || text$="个"]',
-          snapshotUrls: 'https://i.gkd.li/i/26758188',
-          exampleUrls: 'https://e.gkd.li/194773d6-a9c0-48c4-84bf-e1a57449434b',
+            '@ViewGroup[childCount=0] < ViewGroup[index=2] <n [childCount=5] <<6 FrameLayout <<4 [id="android:id/content"]',
+          ],
+          snapshotUrls: [
+            'https://i.gkd.li/i/26758188',
+            'https://i.gkd.li/i/28299711', // 新UI_2026.05.27
+          ],
+          exampleUrls: [
+            'https://e.gkd.li/194773d6-a9c0-48c4-84bf-e1a57449434b',
+            'https://e.gkd.li/9cd0c931-5ae8-4739-8a1a-481d2d5731f4',
+          ],
         },
         // 视频播放界面
-        // 旧版节点树(轮询法)
+        // 1. 旧版节点树(轮询法)
         {
           key: 1,
           name: '①x掉-坐标轮询点击', // 反复点击x来判断是否已领取奖励
@@ -180,7 +194,7 @@ export default defineGkdApp({
           ],
           exampleUrls: 'https://e.gkd.li/3b2a0948-3b77-419b-8acf-2166e1cd445c',
         },
-        // 新版本节点树(可直接识别状态领取奖励)
+        // 2. 新版本节点树(可直接识别状态领取奖励)
         {
           key: 3,
           name: '①x掉-领取成功', // 节点树可直接区分状态(版本19.1.0以上)
@@ -189,18 +203,35 @@ export default defineGkdApp({
           matchRoot: true,
           actionDelay: 1200, //稳定节点树时间
           actionCd: 8000,
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
+          activityIds: [
+            'com.ss.android.excitingvideo.ExcitingVideoActivity',
+            'com.luna.biz.ad.adns.luna.LunaRewardActivity',
+          ],
           anyMatches: [
             '@ImageView[width<56 && height<56][visibleToUser=true] < [childCount=1] <n [childCount>6] <<(6,7) [id="android:id/content"]',
             '@[desc="领取成功，关闭，按钮"] <<3 [index=parent.childCount.minus(1)] <n ViewGroup < ViewGroup <3 FrameLayout <<5 [id="android:id/content"]',
+            '@TextView[clickable=true] - [text="领取成功"][visibleToUser=true]',
           ],
           snapshotUrls: [
             'https://i.gkd.li/i/27359402', // 领取成功
             'https://i.gkd.li/i/27363266',
             'https://i.gkd.li/i/28018493', // UI2
+            'https://i.gkd.li/i/28300641', // UI3_2026.05.27
           ],
           excludeSnapshotUrls: 'https://i.gkd.li/i/27272574', // 未领取
         },
+        // 2026_05_01 新UI
+        {
+          preKeys: [3],
+          name: '②领取奖励_2',
+          versionCode: { minimum: 100191030 },
+          fastQuery: true,
+          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
+          matches:
+            '[desc="领取奖励" || desc^="再看一个" || desc="继续观看"][visibleToUser=true]',
+          snapshotUrls: 'https://i.gkd.li/i/28021222',
+        },
+        // 3. 旧版
         // 领取奖励继续看视频(到第14个Ad后由order1接管)
         {
           preKeys: [3],
@@ -234,30 +265,15 @@ export default defineGkdApp({
           },
           snapshotUrls: 'https://i.gkd.li/i/27359717',
         },
-        // 2026_05_01 新UI
+        //视频内二级全屏Ad
         {
-          preKeys: [3],
-          key: 4,
-          name: '②领取奖励_2',
-          versionCode: { minimum: 100191030 },
-          fastQuery: true,
+          key: 98, // 这个UI太多了,用排除法只匹配x吧
+          name: '视频内二级全屏Ad',
           activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
           matches:
-            '[desc="领取奖励" || desc^="再看一个" || desc="继续观看"][visibleToUser=true]',
-          snapshotUrls: 'https://i.gkd.li/i/28021222',
-        },
-        {
-          preKeys: [4],
-          name: '③结束^_^_2',
-          versionCode: { minimum: 100191030 },
-          order: 1,
-          fastQuery: true,
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
-          matches: [
-            '[desc$="提前得"][visibleToUser=true]',
-            '[desc="坚持退出"][visibleToUser=true]',
-          ],
-          snapshotUrls: 'https://i.gkd.li/i/28020902',
+            'ViewGroup[index=parent.childCount.minus(1)][width<74 && height<73][text=null][id=null][desc=null][visibleToUser=true][childCount=0]',
+          snapshotUrls: 'https://i.gkd.li/i/28302996',
+          exampleUrls: 'https://e.gkd.li/e55793b3-e443-4cd1-80b5-aaa6cd7f88aa',
         },
         //其他情况-无视频
         {
@@ -273,32 +289,39 @@ export default defineGkdApp({
     {
       key: 9,
       name: '功能类-关闭广告的声音',
+      activityIds: [
+        'com.ss.android.excitingvideo.ExcitingVideoActivity',
+        'com.luna.biz.ad.adns.luna.LunaRewardActivity',
+      ],
+      fastQuery: true,
       rules: [
         {
           key: 0,
-          fastQuery: true,
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
           matches: '[text="开启声音"][visibleToUser=true]',
           snapshotUrls: 'https://i.gkd.li/i/24522999',
           excludeSnapshotUrls: 'https://i.gkd.li/i/24521440',
         },
         {
           key: 1,
-          fastQuery: true,
-          actionCd: 40000,
+          actionMaximum: 1,
           versionCode: { minimum: 100191030 },
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
-          matches:
+          anyMatches: [
             '@ImageView[width<57 && height<78][visibleToUser=true] - ScrollView <n [childCount>6] <<(6,7) [id="android:id/content"]',
-          snapshotUrls: 'https://i.gkd.li/i/27365536',
-          exampleUrls: 'https://e.gkd.li/7d86c22c-bbf3-419e-bd6f-eecdaf357872',
+            '@ImageView[visibleToUser=true][width<57 && height<78][visibleToUser=true] -2 [text="广告"]',
+          ],
+          snapshotUrls: [
+            'https://i.gkd.li/i/27365536',
+            'https://i.gkd.li/i/28300641',
+          ],
+          exampleUrls: [
+            'https://e.gkd.li/7d86c22c-bbf3-419e-bd6f-eecdaf357872',
+            'https://e.gkd.li/e0f94288-416d-409a-9426-65401af434b0',
+          ],
         },
         {
           key: 2,
-          fastQuery: true,
-          actionCd: 40000,
+          actionMaximum: 1,
           versionCode: { minimum: 100191030 },
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
           matches:
             '@ImageView[height=-1] <<4 ViewGroup <3 FrameLayout <<5 [id="android:id/content"]',
           position: {
@@ -330,14 +353,22 @@ export default defineGkdApp({
       key: 11,
       name: '局部广告-悬浮窗广告',
       desc: '点击关闭',
+      fastQuery: true,
+      activityIds: 'com.luna.biz.main.main.MainActivity',
       rules: [
         {
-          fastQuery: true,
-          activityIds: 'com.luna.biz.main.main.MainActivity',
+          key: 0,
           matches: '[vid="fl_pendant_container"] > [vid="view_close"]',
           exampleUrls:
             'https://m.gkd.li/57941037/8a427d5f-680b-4562-9cf3-90b1db82df0f',
           snapshotUrls: 'https://i.gkd.li/i/13674376',
+        },
+        {
+          key: 1,
+          matches:
+            '@View[clickable=true][width<126 && height<60] < [childCount=3] <n [childCount=4] < [childCount=3] <2 [childCount=2] <2 [childCount=2] <<3 [vid="navigation_container_under_bottom_bar"]',
+          exampleUrls: 'https://e.gkd.li/42a3884a-6888-4d5b-aa61-7ff5159a5228',
+          snapshotUrls: 'https://i.gkd.li/i/28298866',
         },
       ],
     },
@@ -370,13 +401,21 @@ export default defineGkdApp({
           actionMaximum: 1,
           priorityTime: 5000,
           resetMatch: 'app',
-          matches:
+          anyMatches: [
             '[vid="ui"] >3 @[clickable=true] < ViewGroup +3 View > [text="今日畅听"] + [text^="第" || text$="个"]',
-          snapshotUrls: 'https://i.gkd.li/i/26758188',
-          exampleUrls: 'https://e.gkd.li/194773d6-a9c0-48c4-84bf-e1a57449434b',
+            '@ViewGroup[childCount=0] < ViewGroup[index=2] <n [childCount=5] <<6 FrameLayout <<4 [id="android:id/content"]',
+          ],
+          snapshotUrls: [
+            'https://i.gkd.li/i/26758188',
+            'https://i.gkd.li/i/28299711', // 新UI_2026.05.27
+          ],
+          exampleUrls: [
+            'https://e.gkd.li/194773d6-a9c0-48c4-84bf-e1a57449434b',
+            'https://e.gkd.li/9cd0c931-5ae8-4739-8a1a-481d2d5731f4',
+          ],
         },
         // 视频播放界面
-        // 旧版节点树(轮询法)
+        // 1.旧版节点树(轮询法)
         {
           name: '①x掉-坐标轮询点击', // 反复点击x来判断是否已领取奖励
           key: 1,
@@ -443,7 +482,7 @@ export default defineGkdApp({
           snapshotUrls: 'https://i.gkd.li/i/24521416',
           exampleUrls: 'https://e.gkd.li/8cc22cd9-f48e-4aaa-8c5c-a04a752e6df6',
         },
-        // 新版本节点树(可直接识别状态领取奖励)
+        // 2.新版本节点树(可直接识别状态领取奖励)
         {
           key: 4,
           name: '①x掉-领取成功_2', // 第二种节点树形式_可直接区分非轮询(版本19.1.0以上)
@@ -452,18 +491,52 @@ export default defineGkdApp({
           matchRoot: true,
           actionDelay: 1200, //稳定节点树时间
           actionCd: 8000,
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
+          activityIds: [
+            'com.ss.android.excitingvideo.ExcitingVideoActivity',
+            'com.luna.biz.ad.adns.luna.LunaRewardActivity',
+          ],
           anyMatches: [
             '@ImageView[width<56 && height<56][visibleToUser=true] < [childCount=1] <n [childCount>6] <<(6,7) [id="android:id/content"]',
             '@[desc="领取成功，关闭，按钮"] <<3 [index=parent.childCount.minus(1)] <n ViewGroup < ViewGroup <3 FrameLayout <<5 [id="android:id/content"]',
+            '@TextView[clickable=true] - [text="领取成功"][visibleToUser=true]',
           ],
           snapshotUrls: [
             'https://i.gkd.li/i/27359402', // 领取成功
             'https://i.gkd.li/i/27363266',
             'https://i.gkd.li/i/28018493', // UI2
+            'https://i.gkd.li/i/28300641', // UI3_2026.05.27
           ],
           excludeSnapshotUrls: 'https://i.gkd.li/i/27272574', // 未领取
         },
+        // 2025_05_19 新UI
+        {
+          preKeys: [4],
+          key: 5,
+          name: '②领取奖励_2',
+          versionCode: { minimum: 100191030 },
+          fastQuery: true,
+          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
+          matches:
+            '[desc="领取奖励" || desc^="再看一个" || desc="继续观看"][visibleToUser=true]',
+          excludeMatches: '[desc$="日免费听"][visibleToUser=true]',
+          snapshotUrls: 'https://i.gkd.li/i/28021222',
+          excludeSnapshotUrls: 'https://i.gkd.li/i/28301078',
+        },
+        {
+          preKeys: [5],
+          key: 6,
+          name: '③今日结束结束^_^_2',
+          versionCode: { minimum: 100191030 },
+          fastQuery: true,
+          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
+          matches: [
+            '[desc$="提前得"][visibleToUser=true]',
+            '[desc$="日免费听"]',
+            '[desc="坚持退出"][visibleToUser=true]',
+          ],
+          snapshotUrls: 'https://i.gkd.li/i/28020902',
+        },
+        // 3.旧版
         // 领取奖励继续看视频(到第2个Ad后由order1接管)
         {
           preKeys: [4],
@@ -497,31 +570,6 @@ export default defineGkdApp({
           },
           snapshotUrls: 'https://i.gkd.li/i/27359717',
         },
-        // 2025_05_19 新UI
-        {
-          preKeys: [4],
-          key: 5,
-          name: '②领取奖励_2',
-          versionCode: { minimum: 100191030 },
-          fastQuery: true,
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
-          matches:
-            '[desc="领取奖励" || desc^="再看一个" || desc="继续观看"][visibleToUser=true]',
-          snapshotUrls: 'https://i.gkd.li/i/28021222',
-        },
-        {
-          preKeys: [5],
-          key: 6,
-          name: '③今日结束结束^_^_2',
-          versionCode: { minimum: 100191030 },
-          fastQuery: true,
-          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
-          matches: [
-            '[desc$="提前得"][visibleToUser=true]',
-            '[desc="坚持退出"][visibleToUser=true]',
-          ],
-          snapshotUrls: 'https://i.gkd.li/i/28020902',
-        },
         // 回到主界面
         {
           // preKeys: [3, 4],
@@ -529,16 +577,27 @@ export default defineGkdApp({
           name: '④再看视频?-返回操作',
           fastQuery: true,
           activityIds: 'com.luna.biz.main.main.MainActivity',
-          matches: [
-            '[text$="畅听" || desc$="畅听"]',
+          anyMatches: [
             '[text^="再看" || desc^="再看"][text$="个提前领" || desc$="个提前领"]',
+            '@ViewGroup[childCount=0] <<2 [childCount=4] <<6 FrameLayout <<4 [id="android:id/content"]',
           ],
           action: 'back',
           snapshotUrls: [
             'https://i.gkd.li/i/26411131',
             'https://i.gkd.li/i/26905455',
+            'https://i.gkd.li/i/28299305', // 新UI_2026.05.27
           ],
-          exampleUrls: 'https://e.gkd.li/d3902ed0-5e8d-4c0c-b8ae-5bf3f64c84a8',
+          exampleUrls: 'https://e.gkd.li/6fedf579-d3bc-46eb-b29f-679f469dcfea', //'https://e.gkd.li/d3902ed0-5e8d-4c0c-b8ae-5bf3f64c84a8',
+        },
+        //视频内二级全屏Ad
+        {
+          key: 98, // 这个UI太多了,用排除法只匹配x吧
+          name: '视频内二级全屏Ad',
+          activityIds: 'com.ss.android.excitingvideo.ExcitingVideoActivity',
+          matches:
+            'ViewGroup[index=parent.childCount.minus(1)][width<74 && height<73][text=null][id=null][desc=null][visibleToUser=true][childCount=0]',
+          snapshotUrls: 'https://i.gkd.li/i/28302996',
+          exampleUrls: 'https://e.gkd.li/e55793b3-e443-4cd1-80b5-aaa6cd7f88aa',
         },
         //其他情况-无视频
         {
