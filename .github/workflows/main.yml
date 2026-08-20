@@ -1,0 +1,21 @@
+name: Auto Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天北京时间早上 8 点运行（UTC 0点）
+  workflow_dispatch: # 允许你在网页端手动点击运行
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run sync upstream action
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+        with:
+          upstream_sync_repo: https://github.com/Lin-arm/GKD_subscription.git
+          upstream_sync_branch: main
+          target_sync_branch: main
+          test_mode: false
